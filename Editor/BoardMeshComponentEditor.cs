@@ -1,13 +1,12 @@
 namespace BoardMeshModule
 {
-    using System.Collections;
     using System.Collections.Generic;
     using UnityEngine;
     using UnityEditor;
-    using System.Reflection;
-    using System;
-    using System.Linq;
 
+    /// <summary>
+    /// Editor script for BoardMeshComponent
+    /// </summary>
     [CustomEditor(typeof(BoardMeshComponent))]
     public class BoardMeshComponentEditor : Editor {
         BoardMeshComponent boardBehaviour;
@@ -17,9 +16,19 @@ namespace BoardMeshModule
         Vector2Int? size = Vector2Int.zero;
         Vector2Int lastCoord = Vector2Int.zero;
 
+        /// <summary>
+        /// Camera.main ref so we don't find it while checking if we should draw each tile
+        /// </summary>
         Camera mainCamera;
 
+        /// <summary>
+        /// name cache for popup display
+        /// </summary>
         string[] tileSetNames;
+
+        /// <summary>
+        /// all tilesets, the key being their name.
+        /// </summary>
         Dictionary<string, BoardTileSet> tileSets = new Dictionary<string, BoardTileSet>();
 
         static int currentTileSetIndex = 0;
@@ -69,7 +78,6 @@ namespace BoardMeshModule
         private void OnSceneGUI(SceneView sceneView)
         {
             HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
-            // UpdateAnimAlpha();
 
             DrawBackground();
             DrawBoard();
@@ -106,6 +114,11 @@ namespace BoardMeshModule
             Handles.DrawLine(Vector3.zero, Vector3.forward * board.GetHeight());
         }
 
+        /// <summary>
+        /// Wraps DrawTile(Vector3 center, Color color) - Draw a tile at a coord (assumed valid)
+        /// </summary>
+        /// <param name="x">assumed valid</param>
+        /// <param name="y">assumed valid</param>
         void DrawTile(int x, int y)
         {
             BoardTileSet tileSet = boardBehaviour.GetBoard().GetTile(x, y).tileSet;
@@ -113,6 +126,11 @@ namespace BoardMeshModule
             DrawTile(center, tileSet.color);
         }
 
+        /// <summary>
+        /// Draw a tile at a position with a color
+        /// </summary>
+        /// <param name="center"></param>
+        /// <param name="color"></param>
         void DrawTile(Vector3 center, Color color)
         {
             Vector3[] verts = new Vector3[4];
@@ -147,16 +165,9 @@ namespace BoardMeshModule
         void InitBoardView()
         {
             boardBehaviour = target as BoardMeshComponent;
-            if (boardBehaviour != null)
-            {
-                boardMeshFilter = boardBehaviour.GetComponent<MeshFilter>();
-                boardMeshRenderer = boardBehaviour.GetComponent<MeshRenderer>();
-                BoardMeshGenerator.Generate(boardBehaviour.GetBoard(), boardMeshFilter, boardMeshRenderer);
-            }
-            else
-            {
-                throw new System.Exception("Target was not a BoardBehaviour!");
-            }
+            boardMeshFilter = boardBehaviour.GetComponent<MeshFilter>();
+            boardMeshRenderer = boardBehaviour.GetComponent<MeshRenderer>();
+            BoardMeshGenerator.Generate(boardBehaviour.GetBoard(), boardMeshFilter, boardMeshRenderer);
         }
 
         void DrawBoardSettingsPanel(Rect position)
@@ -200,6 +211,8 @@ namespace BoardMeshModule
             if (mouseInPanel) return;
             if (e.alt || e.control) return;
 
+            // Looks like an unnecessarily complicated 
+            // switch structure, but keeping it in case we get more complicated.
             switch (e.type)
             {
                 case EventType.MouseDown:
@@ -209,7 +222,6 @@ namespace BoardMeshModule
                             CheckMouseTile(e.mousePosition, !e.shift);
                             break;
                         case 1:
-                           // DropDownMenu(e.mousePosition);
                             break;
                         case 2:
                             break;
@@ -243,6 +255,11 @@ namespace BoardMeshModule
             }
         }
 
+        /// <summary>
+        /// Currently assumes the board sits at zero Y.
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <returns></returns>
         Vector3 ProjectMousePositionOntoBoard(Vector2 pos)
         {
             Ray ray = HandleUtility.GUIPointToWorldRay(pos);
@@ -267,5 +284,4 @@ namespace BoardMeshModule
             }
         }
     }
-
 }
