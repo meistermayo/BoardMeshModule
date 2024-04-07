@@ -1,17 +1,30 @@
 namespace BoardMeshModule
 {
-    using System;
-    using System.Collections;
     using System.Collections.Generic;
     using UnityEngine;
     using UnityEngine.Rendering;
 
+    /// <summary>
+    /// Static class for generating the board mesh.
+    /// </summary>
     public static class BoardMeshGenerator
     {
+        /// <summary>
+        /// Contains the summation of all board mesh data via submeshes.
+        /// </summary>
         class MeshData
         {
             public Dictionary<BoardTileSet, SubMeshData> subMeshDatas = new Dictionary<BoardTileSet, SubMeshData>();
 
+            /// <summary>
+            /// Adds a mesh at the desired coordinates (expected to be valid)
+            /// </summary>
+            /// <param name="x">Assumed to be valid</param>
+            /// <param name="y">Assumed to be valid</param>
+            /// <param name="board">Assumed to be non-null</param>
+            /// <param name="prefab">Assumed to be non-null</param>
+            /// <param name="rotation">Assumed to be 90-degree turns</param>
+            /// <param name="xScale">Assumed to be 1.0f or -1.0f</param>
             public void AddMesh(int x, int y, Board board, Mesh prefab, Quaternion rotation, float xScale = 1.0f)
             {
                 BoardTileSet tileSet = board.GetTile(x, y).tileSet;
@@ -20,6 +33,10 @@ namespace BoardMeshModule
                 subMeshData.AddMesh(x, y, prefab, rotation, xScale);
             }
 
+            /// <summary>
+            /// Sets material data
+            /// </summary>
+            /// <param name="meshRenderer"></param>
             public void ApplyToMeshRenderer(MeshRenderer meshRenderer)
             {
                 Material[] materials = new Material[subMeshDatas.Count];
@@ -34,6 +51,10 @@ namespace BoardMeshModule
                 meshRenderer.sharedMaterials = materials;
             }
 
+            /// <summary>
+            /// Sets mesh (non-material) data by accumulating vertex and index data, and populating submesh fields.
+            /// </summary>
+            /// <param name="meshFilter"></param>
             public void ApplyToMeshFilter(MeshFilter meshFilter)
             {
                 SubMeshData totalMeshData = new SubMeshData();
@@ -99,6 +120,11 @@ namespace BoardMeshModule
                 }
             }
 
+            /// <summary>
+            /// Returns a SubMeshData -- creating one if none exists for the tileSet
+            /// </summary>
+            /// <param name="tileSet"></param>
+            /// <returns>Returns a SubMeshData -- creating one if none exists for the tileSet</returns>
             public SubMeshData GetOrCreateSubmeshData(BoardTileSet tileSet)
             {
                 if (!subMeshDatas.ContainsKey(tileSet))
@@ -112,6 +138,9 @@ namespace BoardMeshModule
             }
         }
 
+        /// <summary>
+        /// Vertex and index data for a submesh.
+        /// </summary>
         class SubMeshData
         {
             public List<Vector3> vertList = new List<Vector3>();
@@ -120,6 +149,14 @@ namespace BoardMeshModule
             public List<Vector3> normalList = new List<Vector3>();
             public BoardTileSetData boardTileSetData;
 
+            /// <summary>
+            /// Routes vertex and index data out of a prefab and into its lists.
+            /// </summary>
+            /// <param name="x"></param>
+            /// <param name="y"></param>
+            /// <param name="prefab"></param>
+            /// <param name="rotation"></param>
+            /// <param name="xScale"></param>
             public void AddMesh(int x, int y, Mesh prefab, Quaternion rotation, float xScale = 1.0f)
             {
                 SubMeshData prefabData = new SubMeshData();
@@ -174,6 +211,16 @@ namespace BoardMeshModule
             }
         }
 
+        /// <summary>
+        /// Given a (valid) coordinate, and a number of turns,
+        /// figure out if the wall should be flat, a corner, or an inset, and apply accordingly.
+        /// </summary>
+        /// <param name="x">Assumed valid</param>
+        /// <param name="y">Assumed valid</param>
+        /// <param name="numTurns">90-degree turns about the up axis</param>
+        /// <param name="board"></param>
+        /// <param name="meshData"></param>
+        /// <param name="subMeshData"></param>
         static void HandleWallTile(int x, int y, int numTurns, Board board, MeshData meshData, SubMeshData subMeshData)
         {
             Vector3 wallSide = Vector3.forward;
@@ -240,6 +287,17 @@ namespace BoardMeshModule
             }
         }
 
+        /// <summary>
+        /// Given a (valid) coordinate, and a number of turns,
+        /// figure out if there should be a gate on this tile's side,
+        /// and how to rotate it.
+        /// </summary>
+        /// <param name="x">Assumed valid</param>
+        /// <param name="y">Assumed valid</param>
+        /// <param name="numTurns">90-degree turns about the up axis</param>
+        /// <param name="board"></param>
+        /// <param name="meshData"></param>
+        /// <param name="subMeshData"></param>
         static void HandleGate(int x, int y, int numTurns, Board board, MeshData meshData, SubMeshData subMeshData)
         {
             BoardTileSet tileSet = board.GetTile(x, y).tileSet;
@@ -278,6 +336,14 @@ namespace BoardMeshModule
             }
         }
 
+        /// <summary>
+        /// Gets submesh data, adds floor and ceiling meshes,
+        /// and then attempts to handle wall/gate conditions.
+        /// </summary>
+        /// <param name="x">Assumed valid</param>
+        /// <param name="y">Assumed valid</param>
+        /// <param name="board"></param>
+        /// <param name="meshData"></param>
         static void HandleFloorTile(int x, int y, Board board, MeshData meshData)
         {
             Tile tile = board.GetTile(x, y);
@@ -309,6 +375,11 @@ namespace BoardMeshModule
             }
         }
 
+        /// <summary>
+        /// Allocates new MeshData, populating it for each tile, and applying to mesh rendering components.
+        /// </summary>
+        /// <param name="board"></param>
+        /// <param name="meshFilter"></param>
         public static void Generate(Board board, MeshFilter meshFilter)
         {
             MeshData meshData = new MeshData();

@@ -1,9 +1,8 @@
 namespace BoardMeshModule
 {
-    using System.Collections;
-    using System.Collections.Generic;
-    using UnityEngine;
-
+    /// <summary>
+    /// BoardMesh tile data -- just the tileset in this case.
+    /// </summary>
     [System.Serializable]
     public struct Tile
     {
