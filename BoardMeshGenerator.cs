@@ -23,14 +23,14 @@ namespace BoardMeshModule
             /// <param name="y">Assumed to be valid</param>
             /// <param name="board">Assumed to be non-null</param>
             /// <param name="prefab">Assumed to be non-null</param>
-            /// <param name="rotation">Assumed to be 90-degree turns</param>
-            /// <param name="xScale">Assumed to be 1.0f or -1.0f</param>
-            public void AddMesh(int x, int y, Board board, Mesh prefab, Quaternion rotation, float xScale = 1.0f)
+            /// <param name="numTurns">Number of 90-degree turns about the up axis</param>
+            /// <param name="flipped">Whether to flip the model along the x axis</param>
+            public void AddMesh(int x, int y, Board board, Mesh prefab, int numTurns = 0, bool flipped = false)
             {
                 BoardTileSet tileSet = board.GetTile(x, y).tileSet;
 
                 SubMeshData subMeshData = GetOrCreateSubmeshData(tileSet);
-                subMeshData.AddMesh(x, y, prefab, rotation, xScale);
+                subMeshData.AddMesh(x, y, prefab, numTurns, flipped);
             }
 
             /// <summary>
@@ -155,9 +155,9 @@ namespace BoardMeshModule
             /// <param name="x"></param>
             /// <param name="y"></param>
             /// <param name="prefab"></param>
-            /// <param name="rotation"></param>
-            /// <param name="xScale"></param>
-            public void AddMesh(int x, int y, Mesh prefab, Quaternion rotation, float xScale = 1.0f)
+            /// <param name="numTurns">Number of 90-degree turns about the up axis</param>
+            /// <param name="flipped">Whether to flip the model along the x axis</param>
+            public void AddMesh(int x, int y, Mesh prefab, int numTurns = 0, bool flipped = false)
             {
                 SubMeshData prefabData = new SubMeshData();
                 prefab.GetVertices(prefabData.vertList);
@@ -165,10 +165,15 @@ namespace BoardMeshModule
                 prefab.GetNormals(prefabData.normalList);
 
                 Vector3 offset = Board.CoordToPos(x, y) + new Vector3(0.5f, 0.0f, 0.5f);
+                Quaternion rotation = Quaternion.Euler(Vector3.up * 90.0f * numTurns);
                 for (int i = 0; i < prefabData.vertList.Count; i++)
                 {
                     Vector3 vert = prefabData.vertList[i];
-                    vert.x *= xScale;
+                    if (flipped)
+                    {
+                        vert.x *= -1.0f;
+                    }
+
                     prefabData.vertList[i] = rotation * vert;
                     prefabData.vertList[i] += offset;
                 }
@@ -176,7 +181,7 @@ namespace BoardMeshModule
                 int[] tris = prefab.GetTriangles(0);
 
                 // fix triangle facing
-                if (xScale < 0)
+                if (flipped)
                 {
                     int count = 0;
                     for (int i = 0; i < tris.Length - 2; i++)
@@ -282,8 +287,8 @@ namespace BoardMeshModule
                     rightMesh = subMeshData.boardTileSetData.halfWallObject.sharedMesh;
                 }
 
-                meshData.AddMesh(x, y, board, leftMesh, rotation, 1.0f);
-                meshData.AddMesh(x, y, board, rightMesh, rotation, -1.0f);
+                meshData.AddMesh(x, y, board, leftMesh, numTurns, false);
+                meshData.AddMesh(x, y, board, rightMesh, numTurns, true);
             }
         }
 
@@ -329,7 +334,7 @@ namespace BoardMeshModule
 
                         if (!board.CoordIsWalkable(lx, ly) && !board.CoordIsWalkable(rx, ry))
                         {
-                            meshData.AddMesh(x, y, board, subMeshData.boardTileSetData.gateObject.sharedMesh, rotation, -1.0f);
+                            meshData.AddMesh(x, y, board, subMeshData.boardTileSetData.gateObject.sharedMesh, numTurns);
                         }
                     }
                 }
@@ -357,8 +362,8 @@ namespace BoardMeshModule
             }
             else
             {
-                meshData.AddMesh(x, y, board, subMeshData.boardTileSetData.floorObject.sharedMesh, Quaternion.identity);
-                meshData.AddMesh(x, y, board, subMeshData.boardTileSetData.ceilingObject.sharedMesh, Quaternion.identity);
+                meshData.AddMesh(x, y, board, subMeshData.boardTileSetData.floorObject.sharedMesh);
+                meshData.AddMesh(x, y, board, subMeshData.boardTileSetData.ceilingObject.sharedMesh);
 
                 HandleWallTile(x, y, 0, board, meshData, subMeshData);
                 HandleWallTile(x, y, 1, board, meshData, subMeshData);
