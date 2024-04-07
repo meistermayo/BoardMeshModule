@@ -12,6 +12,7 @@ namespace BoardMeshModule
     public class BoardMeshComponentEditor : Editor {
         BoardMeshComponent boardBehaviour;
         MeshFilter boardMeshFilter;
+        MeshRenderer boardMeshRenderer;
 
         Vector2Int? size = Vector2Int.zero;
         Vector2Int lastCoord = Vector2Int.zero;
@@ -149,7 +150,8 @@ namespace BoardMeshModule
             if (boardBehaviour != null)
             {
                 boardMeshFilter = boardBehaviour.GetComponent<MeshFilter>();
-                BoardMeshGenerator.Generate(boardBehaviour.GetBoard(), boardMeshFilter);
+                boardMeshRenderer = boardBehaviour.GetComponent<MeshRenderer>();
+                BoardMeshGenerator.Generate(boardBehaviour.GetBoard(), boardMeshFilter, boardMeshRenderer);
             }
             else
             {
@@ -179,7 +181,7 @@ namespace BoardMeshModule
             if (GUILayout.Button("Generate Mesh"))
             {
                 Undo.RecordObject(boardMeshFilter, "Changed board mesh");
-                BoardMeshGenerator.Generate(boardBehaviour.GetBoard(), boardMeshFilter);
+                BoardMeshGenerator.Generate(boardBehaviour.GetBoard(), boardMeshFilter, boardMeshRenderer);
                 EditorUtility.SetDirty(target);
             }
 
@@ -187,7 +189,7 @@ namespace BoardMeshModule
             {
                 Undo.RecordObject(boardBehaviour, "Cleared board");
                 boardBehaviour.GetBoard().ClearBoard();
-                BoardMeshGenerator.Generate(boardBehaviour.GetBoard(), boardMeshFilter);
+                BoardMeshGenerator.Generate(boardBehaviour.GetBoard(), boardMeshFilter, boardMeshRenderer);
                 EditorUtility.SetDirty(boardBehaviour);
             }
             GUILayout.EndArea();

@@ -22,10 +22,12 @@ namespace BoardMeshModule
         protected Board board;
 
         MeshFilter boardMeshFilter;
+        MeshRenderer boardMeshRenderer;
 
         void Awake()
         {
             boardMeshFilter = GetComponent<MeshFilter>();
+            boardMeshRenderer = GetComponent<MeshRenderer>();
         }
 
         /// <summary>
@@ -33,7 +35,7 @@ namespace BoardMeshModule
         /// </summary>
         public void Init()
         {
-            BoardMeshGenerator.Generate(board, boardMeshFilter);
+            BoardMeshGenerator.Generate(board, boardMeshFilter, boardMeshRenderer);
         }
 
         public Board GetBoard() => board;

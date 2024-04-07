@@ -385,7 +385,8 @@ namespace BoardMeshModule
         /// </summary>
         /// <param name="board"></param>
         /// <param name="meshFilter"></param>
-        public static void Generate(Board board, MeshFilter meshFilter)
+        /// <param name="meshRenderer"></param>
+        public static void Generate(Board board, MeshFilter meshFilter, MeshRenderer meshRenderer)
         {
             MeshData meshData = new MeshData();
 
@@ -401,7 +402,7 @@ namespace BoardMeshModule
                 }
             }
 
-            meshData.ApplyToMeshRenderer(meshFilter.GetComponent<MeshRenderer>());
+            meshData.ApplyToMeshRenderer(meshRenderer);
             meshData.ApplyToMeshFilter(meshFilter);
         }
     }
