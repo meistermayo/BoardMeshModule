@@ -5,7 +5,6 @@ namespace BoardMeshModule
     using System.Collections;
     using System.Collections.Generic;
     using UnityEngine;
-    using DungeonCrawler.AI;
 
     /// <summary>
     /// Component for generating the mesh.
